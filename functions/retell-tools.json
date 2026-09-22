@@ -1,0 +1,39 @@
+{
+  "_comment": "Essex Heating Experts - inbound receptionist ('Olivia'). These go on the LLM object (llm_28a152a3544f44d8425688bd17de) as 'general_tools', NOT on the agent. ALWAYS send general_tools together with general_prompt - a partial PATCH to update-retell-llm silently wipes the tools and returns 200.",
+  "_transfer_numbers": {
+    "TESTING": "+447723388924",
+    "LIVE": "+447538927855",
+    "live_belongs_to": "Jamie Whybrow, ACCOUNT-ADMIN on the LeadsHub sub-account, essexheatingexperts@outlook.com",
+    "currently_active": "LIVE",
+    "switch_to_live_when": "a test call has been transferred end to end and answered on the test handset",
+    "how_to_switch": "change transfer_destination.number below to the LIVE number, PATCH the LLM with general_tools AND general_prompt together, read the tools back, then publish",
+    "switched_to_live": "2026-09-16, after the test transfer on +447723388924 connected",
+    "transfer_type": "warm_transfer with a private handoff briefing. Was cold_transfer during testing."
+  },
+  "general_tools": [
+    {
+      "type": "end_call",
+      "name": "end_call",
+      "speak_after_execution": false,
+      "description": "End the call. Use it ONLY after the caller has answered that there is nothing else, or has said goodbye. NEVER call it in the same turn as a question - a question needs an answer, so if your last sentence ended in a question mark you do not end the call. NEVER call it just because you have collected everything you needed; finishing your questions is not the caller finishing the call. Never end mid-sentence, never end while they are still talking, and never end on a reply you did not understand."
+    },
+    {
+      "type": "transfer_call",
+      "name": "transfer_call",
+      "description": "Put the caller through to the team. Use this ONLY during office hours, eight in the morning to five in the afternoon, worked out from the current date and time you were given, and ONLY when the caller clearly wants to speak to a person. Tell the caller you are putting them through before you call it. Never use it outside office hours, and never use it for a cold sales call, a scam call, a supplier approach or a job application.",
+      "transfer_destination": {
+        "type": "predefined",
+        "number": "+447538927855"
+      },
+      "transfer_option": {
+        "type": "warm_transfer",
+        "show_transferee_as_caller": false,
+        "enable_bridge_audio_cue": true,
+        "private_handoff_option": {
+          "type": "prompt",
+          "prompt": "You are briefing a colleague at Essex Heating Experts who has just picked up, before the caller is connected. The caller cannot hear you. Give it in two short sentences at most, plainly, no greeting and no pleasantries: who is on the line, where they are calling from if you have it, what they want, and anything urgent such as a gas smell, a complaint, or somebody vulnerable or in a cold property. Say only what was actually established on this call - never guess, never pad, and never repeat the caller's whole story. Then stop and let them take it."
+        }
+      }
+    }
+  ]
+}

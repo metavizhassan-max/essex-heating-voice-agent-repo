@@ -1,0 +1,17 @@
+# Secrets - never commit
+.env
+.env.*
+*.key
+*.pem
+
+# Raw call dumps and working files (contain caller phone numbers and addresses)
+scratch/
+*.tmp
+
+# OS / editor
+Thumbs.db
+.DS_Store
+desktop.ini
+.vscode/
+.idea/
+node_modules/

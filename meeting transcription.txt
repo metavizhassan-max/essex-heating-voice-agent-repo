@@ -1,0 +1,345 @@
+Jamie Whybrow - Essex Heating Experts  - Onboarding With Ai Team - September 08
+VIEW RECORDING - 39 mins (No highlights): 
+
+---
+
+0:00 - Zain Ali (zainalijamil.com)
+  Good afternoon, Jamie. How are you? This meeting is being recorded. Can you hear me, Jamie? You are mute. Can you hear me, Jamie?  You are mute. I will try to send a message. Can you hear me, Jamie? You're mute. So you'll need to unmute yourself.  I'll give you a call.
+
+1:41 - Jamie
+  Hello.
+
+1:44 - Zain Ali (zainalijamil.com)
+  Hi.
+
+1:44 - Jamie
+  Yeah. Now I can hear you. How are you doing?
+
+1:48 - Rashid
+  Yeah, I'm doing good.
+
+1:49 - Zain Ali (zainalijamil.com)
+  Good afternoon. How are you?
+
+1:51 - Jamie
+  Yeah, good. Thank you.
+
+1:54 - Zain Ali (zainalijamil.com)
+  All right. That's great. Sorry for the last minute change. I have to move it. Remove the meeting 30 minutes ahead.
+
+2:04 - Jamie
+  Yeah, no, it's fine. No problems.
+
+2:07 - Zain Ali (zainalijamil.com)
+  All right. So thank you for taking the call. The purpose of this meeting is to complete the AI agents onboarding.  So there are three parts to it. First is the chat widget, which will embed onto your website. The second is the live chat agent, which is a chat bot.  And the same chat bot would be working on the SMS channel as well. I'll go deep into the functionality of those and the use cases in a moment.  And the third is the voice agent. So there are two types of voice agent, inbound and outbound. Within your dominant package, you can pick one of those, either inbound or outbound.  If you want both, the second one would be extra setup fee. But the inbound one would work as an AI receptionist, out-of-hour receptionist.  So it will will take. Calls for you, which are coming outside of ours, and it'll take the caller's details.  Even it can book the surveys into the calendar if you want, and then email you the call summary. The outbound work as an outbound setter, speed to lead agent.  So if there is a new prospect who's just submitted the form on your website, and he hasn't been contacted within maybe 10 or 15 minutes, meaning staff is busy, so the AI would make outbound calls.  So those are the two functionalities for the two types of voice agents. Which one do you think more important?  Yeah, it depends upon the use case. If you think you have more volume of inbound calls, then go for inbound.  If you think that the bottleneck is calling the new leads, then choose the outbound.
+
+3:55 - Jamie
+  Okay.
+
+4:00 - Zain Ali (zainalijamil.com)
+  Yeah, so we'll come to that as well. I have prepared a template sheet where we will be filling out the details regarding the chatbot, the voice agent, and the business details.  Now, in terms of chatbot, let's assume a scenario that is someone searching for something online, they saw your ad, they clicked on it, they landed on your funnel, and filled out the quotation form.  And once the information is submitted, it is now available inside your lead sub-CRM. Now, when the information is in CRM, the chatbot would know that there is a new lead.  It will send a first message to the lead saying, for example, hi, this is whatever the name we want to give it.  So, hi, this is maybe Ava, this is Emi. Hi, this is Emi from Essex Heating. And I just received your inquiry, would you be comfortable answering a few good questions?  So that is the initial outreach message, which they'll send to every new lead. And ideally, the response would be yes.  And then the chatbot can ask more questions regarding their inquiry. For example, if they want a new boiler, the AI can ask the condition of the current boiler, what fuel do they currently use, how soon they're looking to have the new boiler, and send them a server link.  Or book into a survey calendar for a surveyor to conduct the survey. Is this a-populated questionnaire? It is what?
+
+5:39 - Jamie
+  Is this a pre-populated questionnaire?
+
+5:43 - Zain Ali (zainalijamil.com)
+  So it is happening over SMS. It is something we can control, like we can change the questions, we can add or remove.
+
+5:51 - Jamie
+  Okay.
+
+5:52 - Zain Ali (zainalijamil.com)
+  Yes. So when it would come to booking surveys, it will check the available slots inside your leads up calendar.  And would only offer those slots which are available so that it does not end up double booking. So that is the functionality of the chatbot.  And similar behavior would be followed on live chat, on live chatbot on your website. So, so far, does this sound good?
+
+6:20 - Jamie
+  Do you have any questions? No, it sounds good, mate.
+  SCREEN SHARING: Zain started screen sharing - WATCH: https://fathom.video/calls/814829923?timestamp=397.514312
+
+6:32 - Zain Ali (zainalijamil.com)
+  All right. So let me just take it from there. Okay, can you please let me know when you can see my screen?
+
+6:54 - Jamie
+  Yeah, I can see that.
+
+6:57 - Zain Ali (zainalijamil.com)
+  All right. So. So this is the Google Sheet. At the moment, you do not have a chatbot set up already because you are rather new.
+
+7:08 - Jamie
+  So what would be the name you would want to give the chatbot?
+
+7:14 - Zain Ali (zainalijamil.com)
+  To be fair, yeah, yeah, Olivia. Okay. All right. So which service they need, it'll confirm that check area if it's empty.  If they need a new boiler installation, it will check the condition of your current boiler. And it will ask how soon are you looking to have the new boiler installed.  On the e-survey, it will send an e-survey link where they can upload photos of their current boiler system in a link.  And then after that, it will book the survey into survey calendar.
+
+8:07 - Jamie
+  So when you say book the free survey, is this a home visit or is this for a remote survey?
+
+8:33 - Zain Ali (zainalijamil.com)
+  Usually it is a home survey, but if your business operations are doing the remote survey first, then we can change the calendar to remote survey schedule if you want.  Okay, yeah, that sounds good.
+
+8:47 - Jamie
+  Is that sort of like the reasonable sort of like what you'd normally see? Because I'd say this is all new to me.  I'm willing to take on board your advice.
+
+8:56 - Zain Ali (zainalijamil.com)
+  Yeah, usually it's a home survey. Some businesses who have remote survey as their initial step, they would want to maybe call the lead first and then book the survey themselves.  If you want that, the AI can avoid booking the survey and would say, I have passed your details to the team and someone from our team will reach out to you further to discuss further steps or maybe discuss further steps and book survey.  Okay. yeah, it's up to you, like how you manage your new leads for boiler install.
+
+9:34 - Jamie
+  Okay. No worries. Yeah, we'll keep it. Is that for the moment?
+
+9:39 - Zain Ali (zainalijamil.com)
+  Okay. So for boiler, repair service will ask what fuel is the boiler. So it's gas. Can I ask what are the fuel types you work with and which one should it decline?
+
+9:52 - Jamie
+  So you're talking in regards to the oil? We don't do oil.
+
+9:56 - Zain Ali (zainalijamil.com)
+  Yeah, like you don't do oil. You do gas and LPG.
+
+10:00 - Jamie
+  LPG from January.
+
+10:07 - Zain Ali (zainalijamil.com)
+  Okay, so accept gas and LPG and decline oil. It'll ask what's the problem with the boiler on the make model, how soon they need the service or repair done.  And rather than booking a repair visit, it'll just say, I have passed your details to the team, and someone from our team will reach out to you to discuss further.  The reason why I won't recommend booking a visit for this, because every repair job is different, and you might want to speak with the leader.  And sometimes for service, they do not need a service, but they need a repair actually.
+
+11:07 - Jamie
+  So those are also the scenarios.
+
+11:09 - Zain Ali (zainalijamil.com)
+  So that's why. All right. So do you do air conditioning and heat pumps as well?
+
+11:20 - Jamie
+  Yeah.
+
+11:22 - Zain Ali (zainalijamil.com)
+  So which funnel have you got from? Like what's the funnel? Just the boilers. Okay. Yeah. We'll then remove air conditioning for now.  Okay. So if the customer asks about cost, what should it say? Like usually we would have the airboat mentioned the starting prices.  Like the new boiler install starts from 1900 pounds. However, the actual price can vary based on the job. And location.  So do you have any starting price to quote? Yeah, in future you can just let us know to change that and we'll do that.
+
+12:09 - Jamie
+  Yeah, if you say our boilers start from £1,800, is it including VAT? So that will be excluding VAT really.
+
+12:54 - Zain Ali (zainalijamil.com)
+  Oh, so including VAT would be, let me just calculate, £1,800.
+
+13:11 - Jamie
+  How easy is this to change in future?
+
+13:17 - Zain Ali (zainalijamil.com)
+  It's easy. You just need to let us know on to your project management board, your client hub, and we'll do that.
+
+13:27 - Jamie
+  Does it update immediately or does it take quite a time?
+
+13:32 - Zain Ali (zainalijamil.com)
+  So because the AI engine is different than this sheet, so it doesn't read the sheet and it doesn't read the comments, but the AI engine would need to be updated manually.  So within 24 hours, we'll be able to do that for you. Okay. Yeah. As soon as you send the comment, the client support would notify the relevant team member in case if it's an AI request, then to me.  And as soon as I receive the request. We process it within 24 hours. Okay, brilliant. Okay, so do you do finance on boilers?
+
+14:14 - Jamie
+  So we offer finance on boilers, but only Worcester Bosch products.
+
+14:21 - Zain Ali (zainalijamil.com)
+  Zero percent finance on boilers for all.
+
+14:24 - Jamie
+  And air conditioning as well.
+
+14:27 - Zain Ali (zainalijamil.com)
+  Okay, so for both Worcester, I need to confirm the spell. Okay, so is the AC, air conditioning, is that also the Worcester Bosch?
+
+14:42 - Jamie
+  That's right, yeah.
+
+15:05 - Zain Ali (zainalijamil.com)
+  So I've got the chatbot details. For the voice agent, it would maybe go with the same name as the chatbot, which is Olivia.  And do you want the inbound agent or outbound?
+
+15:23 - Jamie
+  So inbound is what answers the phone, right? Makes the first initial call. And then the outbound is the follow-up call, right?
+
+15:34 - Zain Ali (zainalijamil.com)
+  No. So the inbound one, it would act as an out-of-hour receptionist. So if there is no one to pick up the call after the hours, the AI would pick up.  And the outbound one is a call, which is like setter call. Yeah. So once they have submitted the inquiry, the lead information is available in the CRM.  And then they would make first outreach call. You can call it a follow-up call as well.
+
+16:02 - Jamie
+  Okay, yeah, I would say at the moment, I'll be interested in the inbound so we don't miss any new leads.
+
+16:10 - Zain Ali (zainalijamil.com)
+  Okay, so for inbound, we'll need to add a stage. So let me just go to SXHeatingExperts, your lead sub-channel.  And we need to make some change in the pipeline regarding the inbound. So let me just go there. It's taking some time.  We'll come to that in a moment. So inbound would pick up calls from, what's the hour? It should pick up the calls which come to lead some numbers.
+
+17:44 - Jamie
+  Sorry, I don't understand what you're asking.
+
+17:48 - Zain Ali (zainalijamil.com)
+  So the AI agent can pick up calls, for example, if it's been ringing for 10 seconds or maybe 15 seconds and no one answered, then the call can be followed.  Within hours, but if it's outside hours, then there is no need to ring staff for 10 or 15 seconds when there is no one available and AI can pick up the call straight away.  So I need those hours from you. Like what's the hours? Please. Okay. 8 a.m. to 5 p.m. Let the staff ring for how many seconds?  10 seconds are enough?
+
+18:33 - Jamie
+  15 seconds.
+
+18:36 - Zain Ali (zainalijamil.com)
+  Sure. For the agent number, I don't think if you have any numbers. So yeah, it's loaded now. Let's just edit the pipeline.  So we need to add a new stage. After new lead, we can call it AI inbound. next next see We'll you.  The reason why is that if there are any calls being received by AI, it will make those opportunities into AI inbound stage.  So the next day or within the day, you will know that the opportunities in this stage are from AI inbound and you need to check the call summary and then follow up with the lead or maybe call them back from there.  Okay. So I'll go to opportunities now. So there it is, new stage AI inbound. Okay. And let's go to settings and see if you have got any phone numbers because we need to hook the voice agent to specifically its phone numbers.  The number has to be inside Leads Hub so that it can pick up the calls. Yeah, yeah. It's loading.  Yeah, so we'll come to this in a few seconds once it loads. So if during the call they say they need to speak with someone from the team, where should it be for the call to or to staff member?
+
+20:22 - Jamie
+  At the moment, it'll be going, it'll be forwarding to me.
+
+20:28 - Zain Ali (zainalijamil.com)
+  Okay, so you have yourself as a staff user, right? So these are the four numbers. So should AI be hooked at all four?  So whenever there isn't a call coming in to any of the number, it'll ring you for 15 seconds first.  And if you don't pick up, then it'll forward. Okay. Okay, so you have yourself as a staff member, so you'll need to pick up the calls in web app, mobile app, my phone number, desktop, SIP, default channels for ring all.  So it's the web app. So do you take calls on web app? Yeah, think it should be mobile app or the phone number.  So if you have got leads installed on your phone, yeah.
+
+22:01 - Jamie
+  And if I need to add staff into there, can do that at any time.
+
+22:10 - Zain Ali (zainalijamil.com)
+  Edit what?
+
+22:12 - Jamie
+  Any staff.
+
+22:14 - Zain Ali (zainalijamil.com)
+  Yes, yes, you can. Okay, so if they need a new boiler installed, should the voice agent book a survey into your calendar?  Maybe book your free boiler survey, right?
+
+22:52 - Jamie
+  Yep.
+
+22:53 - Zain Ali (zainalijamil.com)
+  Okay. Okay, so for call summaries, where would you want it to send call summaries on your email? So it's essexhatingexperts.outlook.com.  Is this fine? Yes, please.
+
+23:09 - Jamie
+  Can that be changed at any time?
+
+23:11 - Zain Ali (zainalijamil.com)
+  Yes. Okay. So the services I've got from website areas as well, the number we don't need, prices we have got.  So do you work with all of these brands, Worcester, Bosch, Willian, Globombe, Daxi? Yep. For air conditioning, Mitsubishi, Electric, Deacon, and Samsung.  So I think air conditioning, Worcester Bosch has to be there, right?
+
+23:41 - Jamie
+  Yes, yes, yes.
+
+23:42 - Zain Ali (zainalijamil.com)
+  In air conditioning as well. Yeah, we've got the finance already here. Do you offer boiler cover or service plans?  No, not at the moment. talking kind of Okay. So if they need an emergency call out, what should the agent do in that case?
+
+24:07 - Jamie
+  Direct the call to me.
+
+24:10 - Zain Ali (zainalijamil.com)
+  Would you be available after the hours to pick up the call?
+
+24:15 - Jamie
+  After hours, no.
+
+24:17 - Zain Ali (zainalijamil.com)
+  Okay, then it should just take the details and say, I have passed your details to the team and someone reach out to you ASAP.  Let's say we're going to move this one. Prices I've got. All right. Okay, so for the agent, which stage should the agent move?  So if it has booked the survey successfully during the call, it needs to move the opportunity to survey booked stage, but not keep in the inbound because survey is booked.  In that case, it would be survey booked home video. Right. Okay. And yeah, so we don't need that, but it's good if they want to call back.  Just inbound. That's not needed. So for every call, it'll say hello and let us, sorry, this one. So for inbound, it will say, hi, this is Olivia from Essex, Heating Expert.  How can I help?
+
+26:08 - Jamie
+  Something like that. Yeah.
+
+26:12 - Zain Ali (zainalijamil.com)
+  It will try to speak the name of the contact if it's saved inside Leads Hub. So that is an option as well.  My first name, this is Olivia from Essex, Heating Expert. Experts, is it Experts or Expert? Let me check. Experts.  Yeah, Experts. So should it say Olivia, an AI assistant, or just say Olivia from Essex Heating?
+
+26:57 - Jamie
+  Yeah, so yeah, if you could like sort of. Put a description of what her role is, like, I don't know, receptionist or something like that.
+
+27:07 - Zain Ali (zainalijamil.com)
+  An AI receptionist. Yeah. Yeah, it'll work out which service they need. Check their area. Check fuel type. Accept gas, LPG, and decline oil.  If it's a new boiler, it'll book the survey. If it's something else, it'll just pass it to the team.  And it'll just then close the call. So that is the inbound agent. Does this sound good? Any modifications you would want?
+
+27:50 - Jamie
+  The only thing that I'm trying to sort of figure out is whether the actual home survey at this present time, whether that's going to work.  The reason being is what I would like to have done is to get a remote survey done, give them a price directly to them so they've got something to work with.  If they're happy, then go complete the home survey. So they've got an actual price to work with. And then all that does is it essentially cuts out time wasters.  And also, it frees us up to actually get to actually do either boiler installs, admin work, stuff like We don't want to be consistently turning up to jobs where they're just sort of getting a sort of a rough idea of what they're looking for.  We want to give them a price. If you're happy, we'll come out in home survey.
+
+28:46 - Zain Ali (zainalijamil.com)
+  Yeah, I think there are two options we can do. One is we don't book the survey at all and we'll just say that I'll pass that information to the team and they'll call you back.  And so that's... Simplest approach. The second option is it books a survey, but it will say, or before the survey time, you call the lead.  So you check your calendar. Okay, I've got these three surveys today, but I need to call them. You can call them first, give them the price based on the remote survey, and then ask them if it's worth it or if they are happy with it, then go do the home survey.  Let me know which option you want.
+
+29:33 - Jamie
+  What I'm gauging this from is obviously on our website, we're going to have an online quoting tool. So what's the difference between the online quoting tool to this here?
+
+29:43 - Zain Ali (zainalijamil.com)
+  Because they're calling, so they don't have access to the online quote tool, you know.
+
+29:48 - Jamie
+  Would it be a suggestion to send them over to the online quoting tool?
+
+29:55 - Zain Ali (zainalijamil.com)
+  Mm-hmm. Yeah. So it can say, okay, so because you need a new boy. Install, I'd recommend you fill out our online code form to get the quotation and book your survey from there.
+
+30:07 - Jamie
+  Yeah, and then what I would do is once I get that phone call come in and know what they're doing, then obviously I can then reach out and give them a call as well, and then we can sort of talk through things as well.
+
+30:18 - Zain Ali (zainalijamil.com)
+  Yes. So what do you say? So if it's a new contact, they haven't filled any code form, do you want both the chatbot and voice agent to send the code form link?
+
+30:34 - Jamie
+  Yeah.
+
+30:34 - Zain Ali (zainalijamil.com)
+  ask them to fill this out first.
+
+30:36 - Jamie
+  Yeah, but maybe, I don't know if this is an option, maybe, because some people are going to be willing to do that and some people are not.  So say, maybe word it in a way to say, we're going to send you a link to do a home survey.  If you're happy with this, we'll be in contact. If you're not, pass it over to me to maybe have a conversation with them, if that makes sense.  Because not everyone's going to accept doing an option.
+
+31:05 - Zain Ali (zainalijamil.com)
+  Yeah, so there are two use cases. Let's discuss the voice agent first. there is a new one was called during the call, you can ask, would you be comfortable filling out our online quote form and get your instant quote from there?
+
+31:23 - Jamie
+  Yeah, that's it.
+
+31:25 - Zain Ali (zainalijamil.com)
+  And then you can book the survey from the same page. I believe on the quote results form, once they fill the quote form onto the quotation page where we show the prices, I think there is a way to book survey from that page.
+
+31:42 - Jamie
+  That's right.
+
+31:43 - Zain Ali (zainalijamil.com)
+  they can pick, yeah. And if they say they are not comfortable, and they would want rather do something on the call, then what do you want it to do?  Do you want it to book the survey? Or do you want to say, okay, I will pass the due to the...
+
+32:00 - Jamie
+  Yeah, pass it to the team, please, and we'll give them a call back.
+
+32:05 - Zain Ali (zainalijamil.com)
+  Okay, so if it's a new boiler, check if code form is filled already. If not, then ask them if they are comfortable filling out our online code form to get instant fixed price code, right?  That's right. If not, if they do not want to fill form, then simply take their details and let them know that someone from our team will.  Which to you to discuss further.
+
+33:08 - Jamie
+  Sorry, just to jump in there.
+
+33:10 - Zain Ali (zainalijamil.com)
+  Yes.
+
+33:11 - Jamie
+  Sorry, it's not a fixed price quote on the online tool. So we'll give them a price.
+
+33:17 - Zain Ali (zainalijamil.com)
+  To get instant rough. Instant price, yeah. To get instant rough price quote. Sounds good?
+
+33:29 - Jamie
+  Yeah. Subject to size at the moment.
+
+33:32 - Zain Ali (zainalijamil.com)
+  If it's anything else, then pass it to the team. And now let's discuss the chatbot. So for the chatbot, should we do the same as we did with the voice agent?
+
+33:42 - Jamie
+  Yeah, so the chatbot's online, yeah?
+
+33:44 - Zain Ali (zainalijamil.com)
+  Yeah, it's on the SMS.
+
+33:46 - Jamie
+  Yeah, so yeah, same process please.
+
+33:51 - Zain Ali (zainalijamil.com)
+  Yeah, on the SMS and live chatbot, so it'll follow. So let's just remove the e-survey from there. And let's just put this.  All right. I have not read it. Anything else you would want to change?
+
+34:15 - Jamie
+  No, thank you. That sounds good.
+
+34:20 - Zain Ali (zainalijamil.com)
+  All right. So that is all from my side for the sheet. Rashid, can you share the dashboard? So, Jamie, we have prepared a brand new dashboard where you can see analytics and history of the calls which AI is handling.  So, Rashid, over to you.
+  SCREEN SHARING: Rashid started screen sharing - WATCH: https://fathom.video/calls/814829923?timestamp=2080.160893
+
+34:36 - Rashid
+  Yeah, sure. Let me share my screen. Let me know if you can see my screen.
+
+34:43 - Jamie
+  Not at the moment. Okay. Yeah, I can see it now.
+
+34:50 - Rashid
+  If you see. Okay. This is the voice agent dashboard. And that we have. You can check all the call history.  Context, total duration, average call duration, success rate, and from the dashboard, can check call over time, average call duration, also disconnection reasons from agent hangup, user hangup, user sentiment analysis like neutral, negative, positive, or any unknown reason, call rate, pick up rate, voice email rate, average latency, and at the end of, you can check the call time, the call times, the complete heat map in which hours you, your AI agent, inbound agent, the most calls pick up, so you will know the most calls the agent is picking, me just show you for recent month, like three months data, if I check that, I will have a broader  Okay, thank you. So here, if you see, you will check all hours you are getting most calls. Your AI assistant inbound agent is picking the calls.  After that, you will have all the users that if you want to invite someone to check the AI agent calls and things, you can do that as well from users.  Also, can check in calls, the complete inbound agent, call tracking, which time the agent has picked the call, the cost of the call, duration of the call, everything against the call.  Even you can listen to the call. Also, can check the summary for the call, the complete transcript of the call, and you can also give a review about the call if you get any call summary or any complaint over about the agent.  soon. You can just give your review about that, and we can look into that. As an agent is just like an assistant, and this is not perfect from the start, and we need your help about that.  So if you get any call or you review a call, that is the response how you want it, that you can just give your feedback, and the team will look into that one.  And also, we have the knowledge base, as the voice agent needs to be updated according to all the updated knowledge.  If there are responses that we want to give them about some knowledge, like finances, or any additional documents or information about your business that you have, you can just provide your documents here, and it can give the feedback or calls answers according to that knowledge base.  Thank you, guys. So if any questions that come up.
+
+38:07 - Zain Ali (zainalijamil.com)
+  Oh, seems good. All right. So think of it as an exceptionist employee, which is not going to be perfect on day one.  So I know that we'll be developing the voice agent, testing it on ourselves. We'll give you some tries to test it, and we'll update the voice agent based on your feedback.  But it's still going to be 70% or 80%. So the rest of 30% is going to be improved when AI takes real calls.  And if it is making any mistakes on those real calls, you can just go to the calls and leave your feedback to that particular call.  And we'll receive the feedback and update the voice agent so it doesn't make that mistake again. So this 30% of perfection will only come by you working closely with us, just like an employee.  Who would not be perfect on day one, but as you correct, the employees, they'd get better and better. Yeah, sounds good.  Yep. So yeah, that is all from our side.
+
+39:11 - Jamie
+  Any questions? No, that's all good. Thank you very much for your time.
+
+39:15 - Zain Ali (zainalijamil.com)
+  All right. Thank you, Jamie. It was nice speaking with you. Have a good day.
+
+39:18 - Jamie
+  Bye. Thank you. Take care. Bye-bye. Bye.

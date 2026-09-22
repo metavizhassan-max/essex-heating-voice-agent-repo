@@ -1,0 +1,397 @@
+{
+ "name": "Voice pre-call lookup (shared - all agents)",
+ "nodes": [
+  {
+   "parameters": {
+    "httpMethod": "POST",
+    "path": "reid_precall",
+    "responseMode": "responseNode",
+    "options": {}
+   },
+   "type": "n8n-nodes-base.webhook",
+   "typeVersion": 2.1,
+   "position": [
+    -320,
+    0
+   ],
+   "name": "Webhook",
+   "id": "74fd12da-cf70-4297-94cd-60555d8a8407",
+   "webhookId": "8cef07fb-1eed-4563-8ea3-51db075937d6"
+  },
+  {
+   "parameters": {
+    "jsCode": "// Reid Energy Solutions - pre-call lookup, called by Retell the moment a call\n// lands. This endpoint serves TWO callers; detect which, because both the\n// payload shape AND the required response shape differ.\n//\n//   PRE-CALL WEBHOOK  fires before the call connects, set on the phone number.\n//     in : { event:\"call_inbound\", call_inbound:{ agent_id, from_number, to_number } }\n//     out: { call_inbound: { dynamic_variables: { ... } } }   <- anything else is\n//          silently ignored by Retell. 10s budget, 3 retries, then it gives up.\n//\n//   CUSTOM FUNCTION   fires mid-call if the agent is ever given this as a tool.\n//     in : { call:{ agent_id, from_number, ... }, args:{ phone } }\n//     out: flat JSON, read by the model.\n//\n// The caller's number must come from the phone network, not from the model.\n// body.args.phone is whatever the LLM decided to send: it mis-hears digits,\n// drops the country code, or sends the literal string \"{{from_number}}\".\n// SKILL.md 4.3 flags reading from_number instead as the fix for new builds.\n\nconst body = $input.first().json.body || {};\nconst inbound = body.call_inbound || null;\nconst is_precall = String(body.event || '') === 'call_inbound' || !!inbound;\n\n// In pre-call mode the call object IS call_inbound; mid-call it is body.call.\nconst call = inbound || body.call || {};\nconst args = body.args || {};\n\nfunction norm(p) {\n  let s = String(p == null ? '' : p).replace(/[^\\d+]/g, '');\n  if (!s) return '';\n  s = s.replace(/^\\++/, '+');\n  if (s.charAt(0) === '0') return '+44' + s.slice(1);   // UK national -> E.164\n  if (s.charAt(0) !== '+') return '+' + s;\n  return s;\n}\n\n// Reid's agent is inbound only, but keep the direction check: on an OUTBOUND\n// call from_number is the agent's own caller ID, and searching on it finds the\n// client's own contact record or creates junk.\nconst direction = is_precall ? 'inbound' : String(call.direction || 'inbound').toLowerCase();\nconst metaNumber = direction === 'outbound' ? call.to_number : call.from_number;\n\n// args.phone is the LAST resort: web calls carry no number, and a withheld\n// number arrives empty - which is a legitimate state, not an error.\nlet phone = norm(metaNumber);\nlet phone_source = phone ? ('call.' + (direction === 'outbound' ? 'to_number' : 'from_number')) : '';\nif (!phone) {\n  phone = norm(args.phone);\n  phone_source = phone ? 'args.phone' : 'none';\n}\n\n// ---- office_status --------------------------------------------------------\n// The prompt reads {{office_status}} to decide whether it may offer a transfer\n// to Ian. It is worked out HERE, before any branching, so every response path -\n// including \"agent not mapped\" and \"no caller number\" - still carries it.\n//\n// Reid is open Monday to Friday, 8am to 5pm, Europe/London. Anything else is\n// closed. The prompt's own fallback also defaults to closed, so the agent can\n// never promise a transfer it cannot make.\nconst OPEN_DAYS = [1, 2, 3, 4, 5];       // Mon-Fri, 0 = Sunday\nconst OPEN_FROM_MIN = 8 * 60;            // 08:00\nconst OPEN_UNTIL_MIN = 17 * 60;          // 17:00\n\n// Dates the office is shut regardless of weekday - NI bank holidays, Christmas\n// shutdown. 'YYYY-MM-DD', London dates. Left empty until the client supplies\n// them; a guessed list is worse than the weekday rule alone.\nconst CLOSED_DATES = [];\n\nfunction lastSundayUTC(year, monthIndex) {\n  // Last day of the month at 01:00 UTC, walked back to the Sunday.\n  const d = new Date(Date.UTC(year, monthIndex + 1, 0, 1, 0, 0));\n  d.setUTCDate(d.getUTCDate() - d.getUTCDay());\n  return d;\n}\n\nfunction inBST(d) {\n  const y = d.getUTCFullYear();\n  return d >= lastSundayUTC(y, 2) && d < lastSundayUTC(y, 9);   // last Sun Mar -> last Sun Oct\n}\n\nfunction londonParts(d) {\n  try {\n    const parts = {};\n    new Intl.DateTimeFormat('en-GB', {\n      timeZone: 'Europe/London',\n      weekday: 'short', year: 'numeric', month: '2-digit', day: '2-digit',\n      hour: '2-digit', minute: '2-digit', hourCycle: 'h23',\n    }).formatToParts(d).forEach(function (p) { parts[p.type] = p.value; });\n\n    const wd = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 }[parts.weekday];\n    if (wd === undefined) throw new Error('no weekday');\n    const hour = parseInt(parts.hour, 10) % 24;             // some builds report 24:00\n    return {\n      day: wd,\n      minutes: hour * 60 + parseInt(parts.minute, 10),\n      date: parts.year + '-' + parts.month + '-' + parts.day,\n    };\n  } catch (e) {\n    // Fallback for a container built without full ICU data: the UK is UTC,\n    // plus one hour during British Summer Time.\n    const local = new Date(d.getTime() + (inBST(d) ? 60 : 0) * 60000);\n    const mm = String(local.getUTCMonth() + 1).padStart(2, '0');\n    const dd = String(local.getUTCDate()).padStart(2, '0');\n    return {\n      day: local.getUTCDay(),\n      minutes: local.getUTCHours() * 60 + local.getUTCMinutes(),\n      date: local.getUTCFullYear() + '-' + mm + '-' + dd,\n    };\n  }\n}\n\nlet office_status = 'closed';\nlet london_time = '';\ntry {\n  const p = londonParts(new Date());\n  london_time = p.date + ' ' + String(Math.floor(p.minutes / 60)).padStart(2, '0') + ':' +\n                String(p.minutes % 60).padStart(2, '0');\n  if (CLOSED_DATES.indexOf(p.date) === -1 &&\n      OPEN_DAYS.indexOf(p.day) !== -1 &&\n      p.minutes >= OPEN_FROM_MIN && p.minutes < OPEN_UNTIL_MIN) {\n    office_status = 'open';\n  }\n} catch (e) {\n  office_status = 'closed';   // never guess open\n}\n\nreturn [{ json: {\n  is_precall: is_precall,\n  agent_id: String(call.agent_id || body.agent_id || ''),\n  call_id: String(call.call_id || ''),\n  direction: direction,\n  phone: phone,\n  phone_source: phone_source,\n  office_status: office_status,\n  london_time: london_time,\n} }];"
+   },
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "position": [
+    -96,
+    0
+   ],
+   "name": "Extract Args",
+   "id": "be0b96a1-390d-4229-a604-a9c2c74ea74c"
+  },
+  {
+   "parameters": {
+    "operation": "get",
+    "dataTableId": {
+     "__rl": true,
+     "value": "xQoeAdJAp7DTlnkc",
+     "mode": "list",
+     "cachedResultName": "GHL agents for voice assistant",
+     "cachedResultUrl": "/projects/7p3YVxb6otL9F2Kc/datatables/xQoeAdJAp7DTlnkc"
+    },
+    "filters": {
+     "conditions": [
+      {
+       "keyName": "agent_id",
+       "keyValue": "={{ $json.agent_id }}"
+      }
+     ]
+    }
+   },
+   "type": "n8n-nodes-base.dataTable",
+   "typeVersion": 1.1,
+   "position": [
+    128,
+    0
+   ],
+   "name": "Agent -> Location",
+   "alwaysOutputData": true,
+   "id": "192a2d71-3370-434e-8fe6-2bbbf898b26c",
+   "onError": "continueRegularOutput"
+  },
+  {
+   "parameters": {
+    "operation": "get",
+    "dataTableId": {
+     "__rl": true,
+     "value": "kCjYHcPq7VtcvoAl",
+     "mode": "list",
+     "cachedResultName": "GHL marketplace app for voice assistant",
+     "cachedResultUrl": "/projects/7p3YVxb6otL9F2Kc/datatables/kCjYHcPq7VtcvoAl"
+    },
+    "filters": {
+     "conditions": [
+      {
+       "keyName": "location_id",
+       "keyValue": "={{ $json.location_id }}"
+      }
+     ]
+    }
+   },
+   "type": "n8n-nodes-base.dataTable",
+   "typeVersion": 1.1,
+   "position": [
+    352,
+    0
+   ],
+   "name": "Location -> Token",
+   "alwaysOutputData": true,
+   "id": "2c768faa-1e13-48bf-a329-1ab7d318d984",
+   "onError": "continueRegularOutput"
+  },
+  {
+   "parameters": {
+    "jsCode": "// Both lookups run with alwaysOutputData, so \"no match\" arrives as an empty\n// object rather than as a stopped chain. Decide here, once, whether we can\n// actually call GHL - and if not, say exactly why.\n//\n// office_status rides through untouched: it is already decided and it must\n// reach the agent even when the CRM lookup cannot run.\n\nconst req = $('Extract Args').first().json;\n\nlet location_id = '';\ntry { location_id = ($('Agent -> Location').first().json || {}).location_id || ''; } catch (e) {}\n\nlet token = '';\ntry { token = ($('Location -> Token').first().json || {}).access_token || ''; } catch (e) {}\n\nlet ok = true;\nlet reason = '';\nif (!location_id) {\n  ok = false;\n  reason = 'agent_not_mapped';        // add the row to xQoeAdJAp7DTlnkc\n} else if (!token) {\n  ok = false;\n  reason = 'no_token_for_location';   // marketplace app not installed on this sub-account\n} else if (!req.phone) {\n  ok = false;\n  reason = 'no_caller_number';        // withheld number, or a web call\n}\n\nreturn [{ json: Object.assign({}, req, { location_id: location_id, token: token, ok: ok, reason: reason }) }];"
+   },
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "position": [
+    560,
+    0
+   ],
+   "name": "Config OK?",
+   "id": "c649d6e8-7334-4aa4-862a-a7134552fa47"
+  },
+  {
+   "parameters": {
+    "conditions": {
+     "options": {
+      "caseSensitive": true,
+      "leftValue": "",
+      "typeValidation": "loose",
+      "version": 2
+     },
+     "conditions": [
+      {
+       "id": "c1",
+       "leftValue": "={{ $json.ok }}",
+       "rightValue": true,
+       "operator": {
+        "type": "boolean",
+        "operation": "true",
+        "singleValue": true
+       }
+      }
+     ],
+     "combinator": "and"
+    },
+    "looseTypeValidation": true,
+    "options": {}
+   },
+   "type": "n8n-nodes-base.if",
+   "typeVersion": 2.2,
+   "position": [
+    784,
+    0
+   ],
+   "name": "Can Look Up?",
+   "id": "9d1fa4b9-a33a-4bd5-8d45-017cf650a958"
+  },
+  {
+   "parameters": {
+    "url": "=https://services.leadconnectorhq.com/locations/{{ $json.location_id }}/customFields",
+    "sendHeaders": true,
+    "headerParameters": {
+     "parameters": [
+      {
+       "name": "Authorization",
+       "value": "=Bearer {{ $json.token }}"
+      },
+      {
+       "name": "Version",
+       "value": "2021-07-28"
+      },
+      {
+       "name": "Accept",
+       "value": "application/json"
+      },
+      {
+       "name": "User-Agent",
+       "value": "Mozilla/5.0"
+      }
+     ]
+    },
+    "options": {
+     "timeout": 5000
+    }
+   },
+   "type": "n8n-nodes-base.httpRequest",
+   "typeVersion": 4.2,
+   "position": [
+    1008,
+    -128
+   ],
+   "name": "Fetch Field Map",
+   "alwaysOutputData": true,
+   "id": "51a29ab6-f0b8-4c87-a685-0ec4ce8e7974",
+   "onError": "continueRegularOutput"
+  },
+  {
+   "parameters": {
+    "url": "https://services.leadconnectorhq.com/contacts/search/duplicate",
+    "sendQuery": true,
+    "queryParameters": {
+     "parameters": [
+      {
+       "name": "locationId",
+       "value": "={{ $('Config OK?').first().json.location_id }}"
+      },
+      {
+       "name": "number",
+       "value": "={{ $('Config OK?').first().json.phone }}"
+      }
+     ]
+    },
+    "sendHeaders": true,
+    "headerParameters": {
+     "parameters": [
+      {
+       "name": "Authorization",
+       "value": "=Bearer {{ $('Config OK?').first().json.token }}"
+      },
+      {
+       "name": "Version",
+       "value": "2021-07-28"
+      },
+      {
+       "name": "Accept",
+       "value": "application/json"
+      },
+      {
+       "name": "User-Agent",
+       "value": "Mozilla/5.0"
+      }
+     ]
+    },
+    "options": {
+     "timeout": 6000
+    }
+   },
+   "type": "n8n-nodes-base.httpRequest",
+   "typeVersion": 4.2,
+   "position": [
+    1232,
+    -128
+   ],
+   "name": "Find Contact",
+   "alwaysOutputData": true,
+   "id": "aefb741b-0526-476c-823c-fd3b46e40f1a",
+   "onError": "continueRegularOutput"
+  },
+  {
+   "parameters": {
+    "jsCode": "// Shared pre-call lookup. Serves every agent in datatable xQoeAdJAp7DTlnkc.\n// Adding an agent is one datatable row - never a new workflow, never a per-client\n// branch in this file.\n//\n// Pre-call must answer { call_inbound: { dynamic_variables: {...} } }. Retell\n// ignores any other shape without raising an error.\n//\n// ---- ONE NAME PER FACT ----------------------------------------------------\n// The GHL field key IS the variable name. No prefix, no renaming, no mapping\n// table. A custom field with fieldKey `what_type_of_boiler_do_you_have` arrives\n// in the prompt as {{what_type_of_boiler_do_you_have}}. Standard contact fields\n// keep their GHL names: first_name, last_name, name, email, phone, address1,\n// city, postal_code, tags.\n//\n// This is deliberate. The old build prefixed everything with customer_, which\n// meant the same fact had one name in GHL, another in n8n and a third in the\n// prompt - and every hop was somewhere it could be mapped wrong.\n\nconst cfg = $('Config OK?').first().json;\nconst raw = $input.first().json || {};\n\n// /contacts/search/duplicate answers { contact: {...} }; a 404/401 arrives here\n// as an { error: ... } object because onError is continueRegularOutput.\nconst c = raw.contact || (raw.id ? raw : null);\nconst lookup_failed = !!raw.error;\n\nconst name = c ? (c.contactName || [c.firstName, c.lastName].filter(Boolean).join(' ') || '') : '';\nconst first_name = c ? String(c.firstName || String(name).split(' ')[0] || '').trim() : '';\nconst last_name = c ? String(c.lastName || '').trim() : '';\nconst email = c ? (c.email || '') : '';\nconst phone = c ? (c.phone || '') : '';\nconst city = c ? (c.city || '') : '';\nconst tags = c ? (c.tags || []).join(', ') : '';\n\n// Address and postcode are STANDARD contact fields, not custom ones, so they\n// never appear in the customFields loop below.\nlet address1 = c ? (c.address1 || '') : '';\nlet postal_code = c ? (c.postalCode || '') : '';\nconst reason = c ? 'ok' : (lookup_failed ? 'lookup_failed' : 'not_found');\n\n// ---- custom fields, named from the live GHL field map ---------------------\n// Fully generic, no per-client configuration. Every FILLED contact custom field\n// goes out twice:\n//\n//   <fieldKey>      the exact GHL key, so the prompt can name it directly\n//   known_details   one readable block, \"Label: value\" per line\n//\n// known_details is what makes this work. A prompt can only read a variable it\n// names, and no prompt can name a form field somebody adds next month. The\n// roll-up carries everything the CRM holds whether the prompt knows the key or\n// not - the presence principle: a line that is there is a real answer, anything\n// absent is a question nobody has answered.\n//\n// Empty values are dropped. Sending \"\" would make an unanswered question look\n// answered, and the agent would skip asking it.\nconst NULLISH = new Set(['', 'n/a', 'na', 'none', 'null', 'undefined', 'not applicable',\n                         'not mentioned', 'not established', '-', '--']);\n\n// ---- NEVER feed the agent its own previous output -------------------------\n// Post-call analysis writes call_outcome, call_summery, caller_type and the rest\n// back into contact custom fields. Those are fields like any other, so without\n// this guard the pre-call lookup harvests them and hands the agent a summary of\n// its OWN last call as if a customer had said it. It compounds every call.\n//\n// These keys are excluded from known_details and from the per-field variables.\n// Anything genuinely useful here (postcode, property address) already ships as\n// its own standard variable, so nothing is lost.\nconst AGENT_OUTPUT = new Set([\n  'call_outcome', 'caller_type', 'service_and_job_type',\n  'call_summery', 'call_summary', 'conversation_summary',\n  'next_action', 'callback_number', 'issue_reported',\n  'ai_new_boiler_quote_form', 'is_emergency', 'emergency',\n  'bot_automate', 'message_history',\n]);\n// Belt and braces: anything whose key looks like agent bookkeeping rather than a\n// customer answer.\nconst AGENT_OUTPUT_RX = /^(ai_|voice_)|_summary$|_summery$|call_outcome|next_action|bot_automate/i;\nconst fields = {};    // fieldKey -> value\nconst labelled = [];  // \"Label: value\"\n\ntry {\n  const fm = $('Fetch Field Map').first().json || {};\n  const metaById = {};\n  (fm.customFields || []).forEach(function (f) {\n    if (f.model && f.model !== 'contact') return;      // skip opportunity fields\n    if (!f.id || !f.fieldKey) return;\n    metaById[f.id] = {\n      key: String(f.fieldKey).replace(/^contact[.]/, ''),\n      label: String(f.name || f.fieldKey || '').trim(),\n    };\n  });\n  (c ? (c.customFields || []) : []).forEach(function (f) {\n    const m = metaById[f.id];\n    if (!m) return;\n    let v = f.value;\n    if (v === undefined || v === null) return;\n    if (Array.isArray(v)) v = v.join(', ');\n    const str = String(v).trim();\n    if (NULLISH.has(str.toLowerCase())) return;\n    if (AGENT_OUTPUT.has(m.key) || AGENT_OUTPUT_RX.test(m.key)) return;   // our own output\n    fields[m.key] = str;\n    labelled.push((m.label || m.key) + ': ' + str);\n  });\n} catch (e) { /* no field map - standard fields still returned */ }\n\n// A custom field must never shadow a standard one. property_address is the\n// exception: a GHL field of that name beats address1 + postalCode stitched.\nconst RESERVED = new Set([\n  'first_name', 'last_name', 'name', 'email', 'phone', 'address1', 'city',\n  'postal_code', 'tags', 'known_details', 'from_number', 'current_datetime',\n  'found', 'is_existing', 'contact_id', 'reason', 'phone_source',\n]);\nObject.keys(fields).forEach(function (k) { if (RESERVED.has(k)) delete fields[k]; });\n\nconst known_details = labelled.join('\\n');\n\n// ---- address fallback -----------------------------------------------------\n// Some accounts capture the address in a custom field rather than the standard\n// one. \"email_address\" is excluded deliberately: it matches /address/ and isn't one.\nfunction firstMatch(rx, exclude) {\n  const keys = Object.keys(fields).sort();          // stable, not hash order\n  for (let i = 0; i < keys.length; i++) {\n    const k = keys[i];\n    if (exclude && exclude.test(k)) continue;\n    if (rx.test(k) && String(fields[k]).trim()) return String(fields[k]).trim();\n  }\n  return '';\n}\nif (!address1)    address1    = firstMatch(/address|premises|property_location/, /email|ip_address/);\nif (!postal_code) postal_code = firstMatch(/post_?code|postal/, null);\n\n// Retell leaves an UNSENT variable in the prompt as the literal \"{{first_name}}\",\n// which the agent then speaks to the caller. Every key a prompt may read must\n// exist on EVERY call, as an empty string when we have nothing.\nconst REQUIRED = [\n  'first_name', 'last_name', 'name', 'email', 'phone',\n  'address1', 'city', 'postal_code', 'property_address', 'tags',\n  'known_details', 'from_number', 'current_datetime',\n];\n\nfunction buildVars() {\n  // Base first, harvested custom fields over the top, so a real CRM value always\n  // beats an empty placeholder.\n  const v = Object.assign({\n    first_name: String(first_name),\n    last_name: String(last_name),\n    name: String(name),\n    email: String(email),\n    phone: String(phone),\n    address1: String(address1),\n    city: String(city),\n    postal_code: String(postal_code),\n    tags: String(tags),\n    known_details: String(known_details),\n\n    // From the call and the clock, not the CRM, so still true on every failure path.\n    from_number: String(cfg.phone || ''),\n    current_datetime: String(cfg.london_time || ''),\n  }, fields);\n\n  if (address1)    v.address1    = String(address1);\n  if (postal_code) v.postal_code = String(postal_code);\n\n  // The address and postcode as ONE string, because the agent reads it back as\n  // one line: \"so that's a hundred and twenty Mayes Road, N22 6XJ\".\n  if (!String(v.property_address || '').trim()) {\n    v.property_address = [v.address1, v.postal_code]\n      .filter(function (s) { return s && String(s).trim(); })\n      .join(', ');\n  }\n\n  // Every dynamic variable must be a STRING. A null or a number makes Retell\n  // drop the whole variable, and the prompt then speaks the literal \"{{...}}\".\n  REQUIRED.forEach(function (k) { if (typeof v[k] !== 'string') v[k] = ''; });\n  Object.keys(v).forEach(function (k) { v[k] = String(v[k] == null ? '' : v[k]); });\n  return v;\n}\n\nif (cfg.is_precall) {\n  return [{ json: {\n    call_inbound: {\n      dynamic_variables: buildVars(),\n      metadata: {\n        contact_id: String(c ? (c.id || '') : ''),\n        lookup_reason: reason,\n        london_time: String(cfg.london_time || ''),\n        custom_fields_found: String(labelled.length),\n      },\n    },\n  } }];\n}\n\nreturn [{ json: Object.assign({\n  found: !!c, is_existing: !!c,\n  contact_id: c ? (c.id || '') : '',\n  reason: reason,\n  phone_source: cfg.phone_source,\n}, buildVars()) }];\n"
+   },
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "position": [
+    1440,
+    -128
+   ],
+   "name": "Build Result",
+   "id": "975a65ce-64dc-4b02-97af-552ab233b26b"
+  },
+  {
+   "parameters": {
+    "jsCode": "// Retell waits on this HTTP response. If the workflow ends without one, the\n// pre-call webhook retries 3x and then starts the call with NO variables at all\n// - and the agent then speaks the literal \"{{first_name}}\" to the caller. So a\n// config problem must still answer, as an unknown caller, which is a state every\n// prompt already handles.\n//\n// This key list must stay identical to REQUIRED in Build Result. Empty strings,\n// never omitted keys - an omitted key is what leaks braces onto a live call.\n\nconst cfg = $input.first().json || {};\n\nconst EMPTY = {\n  first_name: '',\n  last_name: '',\n  name: '',\n  email: '',\n  phone: '',\n  address1: '',\n  city: '',\n  postal_code: '',\n  property_address: '',\n  tags: '',\n  known_details: '',\n\n  // Still true even with no CRM: these come from the call and the clock.\n  from_number: String(cfg.phone || ''),\n  current_datetime: String(cfg.london_time || ''),\n};\n\nif (cfg.is_precall) {\n  return [{ json: {\n    call_inbound: {\n      dynamic_variables: EMPTY,\n      metadata: {\n        contact_id: '',\n        lookup_reason: cfg.reason || 'config_error',\n        london_time: String(cfg.london_time || ''),\n        custom_fields_found: '0',\n      },\n    },\n  } }];\n}\n\nreturn [{ json: Object.assign({\n  found: false, is_existing: false,\n  contact_id: '',\n  reason: cfg.reason || 'config_error',\n  phone_source: cfg.phone_source || 'none',\n}, EMPTY) }];\n"
+   },
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "position": [
+    1008,
+    144
+   ],
+   "name": "Build Not Found",
+   "id": "9102b02d-0395-4122-927d-356c5767b091"
+  },
+  {
+   "parameters": {
+    "respondWith": "json",
+    "responseBody": "={{ JSON.stringify($json) }}",
+    "options": {}
+   },
+   "type": "n8n-nodes-base.respondToWebhook",
+   "typeVersion": 1.5,
+   "position": [
+    1680,
+    0
+   ],
+   "name": "Respond to Retell",
+   "id": "69c793ed-f9b2-48af-8761-0302fc44d55b"
+  }
+ ],
+ "connections": {
+  "Webhook": {
+   "main": [
+    [
+     {
+      "node": "Extract Args",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Extract Args": {
+   "main": [
+    [
+     {
+      "node": "Agent -> Location",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Agent -> Location": {
+   "main": [
+    [
+     {
+      "node": "Location -> Token",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Location -> Token": {
+   "main": [
+    [
+     {
+      "node": "Config OK?",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Config OK?": {
+   "main": [
+    [
+     {
+      "node": "Can Look Up?",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Can Look Up?": {
+   "main": [
+    [
+     {
+      "node": "Fetch Field Map",
+      "type": "main",
+      "index": 0
+     }
+    ],
+    [
+     {
+      "node": "Build Not Found",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Fetch Field Map": {
+   "main": [
+    [
+     {
+      "node": "Find Contact",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Find Contact": {
+   "main": [
+    [
+     {
+      "node": "Build Result",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Build Result": {
+   "main": [
+    [
+     {
+      "node": "Respond to Retell",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Build Not Found": {
+   "main": [
+    [
+     {
+      "node": "Respond to Retell",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  }
+ },
+ "settings": {
+  "executionOrder": "v1"
+ }
+}

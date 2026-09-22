@@ -1,0 +1,154 @@
+{
+  "_comment": "Essex Heating Experts - inbound receptionist ('Olivia'). PATCH this onto the agent as post_call_analysis_data. Retell already provides call_summary, user_sentiment, call_successful and in_voicemail - none of them are recreated here.",
+  "post_call_analysis_data": [
+    {
+      "type": "enum",
+      "name": "call_outcome",
+      "description": "What actually happened on this call, chosen from the fixed list. 'Quote Form Agreed' if the caller agreed to be sent the online boiler quote form. 'Details Taken For Callback' for any enquiry, repair or service where the details were taken for the team - this is the normal outcome and covers emergencies too, which are flagged separately by is_emergency. 'Complaint Logged' if the caller was unhappy about work already done. 'Out Of Scope' if the enquiry was declined because it was oil fuelled, a service not offered, or a confirmed area not covered. 'Partnership Enquiry', 'Job Application' and 'Spam Or Sales' for calls that were not about a job. 'Incomplete' if the caller hung up or the line dropped before anything was established. Pick exactly one.",
+      "choices": [
+        "Quote Form Agreed",
+        "Details Taken For Callback",
+        "Complaint Logged",
+        "Out Of Scope",
+        "Partnership Enquiry",
+        "Job Application",
+        "Spam Or Sales",
+        "Incomplete"
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "caller_type",
+      "description": "Who was calling. 'New Boiler Or Installation Enquiry' for a new boiler, replacement, quote, price, upgrade, new heating system or heat pump install. 'Boiler Repair Or Service' for a fault, an annual service, a landlord gas safety certificate or a power flush on an appliance they already have. 'Emergency Or Gas Escape' for a smell of gas, a carbon monoxide alarm, a leak, or no heating and no hot water at all. 'Complaint' if they were unhappy about work already done. 'Spam Or Scam' for unsolicited selling to the business, or a caller claiming to be a bank, regulator or utility. Use 'Not Established' if the caller never said. Pick exactly one.",
+      "choices": [
+        "New Boiler Or Installation Enquiry",
+        "Boiler Repair Or Service",
+        "Emergency Or Gas Escape",
+        "Complaint",
+        "Partnership Or Supplier",
+        "Job Application",
+        "Spam Or Scam",
+        "Out Of Scope Or Out Of Area",
+        "Not Established"
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "service_and_job_type",
+      "description": "The service line and job type the call was about, combined into one value. 'Landlord Gas Safety Certificate' takes priority over 'Boiler Service' when the caller is a landlord asking for a certificate. Use 'Boiler Installation' for a new boiler or a replacement, 'Boiler Repair' for a fault on an existing boiler, 'Boiler Service' for an annual service. Use 'Not Established' if the call never got as far as identifying the work. Pick exactly one.",
+      "choices": [
+        "Boiler Installation",
+        "Boiler Repair",
+        "Boiler Service",
+        "Landlord Gas Safety Certificate",
+        "Central Heating",
+        "Power Flushing",
+        "Plumbing",
+        "Air Conditioning",
+        "Heat Pump Installation",
+        "Not Established"
+      ]
+    },
+    {
+      "type": "string",
+      "name": "caller_full_name",
+      "description": "The caller's full name exactly as they gave it, first name and surname if both were given. If the agent was already holding the name from the CRM and the caller confirmed it, use that. Do not include a title, a company name or a job title. Leave this COMPLETELY EMPTY if it was not established on the call - do not write 'not mentioned', 'unknown', 'n/a' or any other placeholder. The value is written straight into the CRM and shown in an email, so a placeholder reads as though the customer said it.",
+      "examples": [
+        "Jamie Whybrow",
+        "Sarah Ellis"
+      ]
+    },
+    {
+      "type": "string",
+      "name": "caller_email",
+      "description": "The caller's email address exactly as they spelled it out, lower case, no spaces. Leave this COMPLETELY EMPTY if it was not established on the call - do not write 'not mentioned', 'unknown', 'n/a' or any other placeholder. The value is written straight into the CRM and shown in an email, so a placeholder reads as though the customer said it.",
+      "examples": [
+        "s.ellis@example.co.uk"
+      ]
+    },
+    {
+      "type": "string",
+      "name": "property_address",
+      "description": "The full address of the property the work is at, including the postcode if given. This is the property address, which may not be the caller's own home - on a landlord gas safety certificate it is the rental property. Leave this COMPLETELY EMPTY if it was not established on the call - do not write 'not mentioned', 'unknown', 'n/a' or any other placeholder. The value is written straight into the CRM and shown in an email, so a placeholder reads as though the customer said it.",
+      "examples": [
+        "14 Laindon Road, Billericay, CM12 9LD"
+      ]
+    },
+    {
+      "type": "string",
+      "name": "postcode",
+      "description": "The postcode of the property the work is for, in normal UK format with a space, for example 'CM12 3AB'. Take it from what the caller said or confirmed on this call, including when they only confirmed a postcode the agent already held. If they spelled it out letter by letter, write it as a normal postcode, not as separate letters. It is the single most important detail for the team, because it decides whether the job is in the service area and where the engineer goes. Never invent, complete or correct a postcode - if they gave only a partial one, record exactly the part they gave. Leave this COMPLETELY EMPTY if it was not established on the call - do not write 'not mentioned', 'unknown', 'n/a' or any other placeholder. The value is written straight into the CRM and shown in an email, so a placeholder reads as though the customer said it.",
+      "examples": [
+        "CM12 9XY",
+        "SS6 7DA",
+        "RM10 8XL"
+      ]
+    },
+    {
+      "type": "string",
+      "name": "issue_reported",
+      "description": "What the caller said was wrong, in the caller's own words, as one clear sentence. On a repair or service call this is the fault. On a complaint call this is their account of what went wrong with the work already done. Do NOT diagnose, do NOT name a part, and do NOT add any interpretation the caller did not say. Leave this COMPLETELY EMPTY if it was not established on the call - do not write 'not mentioned', 'unknown', 'n/a' or any other placeholder. The value is written straight into the CRM and shown in an email, so a placeholder reads as though the customer said it.",
+      "examples": [
+        "Boiler is making a loud banging noise when the heating comes on and the radiators upstairs stay cold."
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "fuel_type",
+      "description": "The fuel the appliance runs on, as stated by the caller. Gas and LPG are accepted by the business, oil is not. Use 'Not Established' if the caller did not say or did not know - do not infer 'Gas' just because most homes are gas.",
+      "choices": [
+        "Gas",
+        "LPG",
+        "Oil",
+        "Not Established"
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "boiler_type",
+      "description": "The type of boiler the caller has, not the make or model - the agent is instructed never to ask for a make or model. 'Combi' is one unit with no tanks, heating water on demand. 'System' has a hot water cylinder but no loft tank. 'Conventional' (also called regular or heat only) has both a cylinder and a tank in the loft. Use 'Not Sure' if the caller was asked and did not know, which is common and completely normal. Use 'Not Established' if it never came up. Pick exactly one.",
+      "choices": [
+        "Combi",
+        "System",
+        "Conventional",
+        "Not Sure",
+        "Not Established"
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "current_boiler_condition",
+      "description": "On a new boiler or installation enquiry only, the condition of the boiler they have now. 'No Boiler Yet' covers a new build or a property with no boiler installed. Use 'Not Established' on any call that was not an installation enquiry, or where the caller did not say.",
+      "choices": [
+        "Working Fine",
+        "Working But Unreliable",
+        "Not Working",
+        "No Boiler Yet",
+        "Not Established"
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "timeframe",
+      "description": "How soon the caller wants the work done, in their own terms mapped to the closest option. 'As Soon As Possible' for today, this week, or urgent language. 'Within A Week' where they named a few days. Use 'Not Established' if they did not say - do not guess from tone.",
+      "choices": [
+        "As Soon As Possible",
+        "Within A Week",
+        "One To Two Months",
+        "Three Months Or More",
+        "Not Urgent",
+        "Not Established"
+      ]
+    },
+    {
+      "type": "boolean",
+      "name": "quote_form_requested",
+      "description": "True if the caller agreed on this call to be sent the online boiler quote form link. False if they were offered it and declined, if they had already completed it, or if they were never offered it because the call was not a new boiler or installation enquiry. This drives whether the link is sent after the call, so only true when they actually said yes."
+    },
+    {
+      "type": "boolean",
+      "name": "is_emergency",
+      "description": "True ONLY if this call was an emergency - the caller said the words emergency or urgent, reported a smell of gas, a suspected gas escape or a carbon monoxide alarm, water escaping, no heating AND no hot water at all, or a vulnerable person in a cold property. A caller who simply wants the work done as soon as possible is NOT an emergency. False in every other case, including when the call never got that far."
+    }
+  ]
+}
