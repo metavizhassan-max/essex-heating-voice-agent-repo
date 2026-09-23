@@ -310,22 +310,94 @@ BAD   every town, every brand, the agent's name, the company name
 **Spelled-out letters are the hardest thing for any ASR** - single phonemes with no context. Expect
 a second pass and write the prompt to stay relaxed about it rather than looping.
 
+### The settings that actually decide transcription quality
+
+| Setting | Set it to | Why |
+|---|---|---|
+| `language` | the exact locale, e.g. `en-GB` | Defaults to `en-US` silently. Retell says `en-GB` "optimizes speech recognition for British English". Free, and it also fixes read-back accent |
+| `stt_mode` | `accurate` | Costs ~200ms. Retell's benchmark: overall word error rate barely moves, but **entity capture** - postcodes, numbers, dates - is the difference |
+| `denoising_mode` | `noise-cancellation` (the default) | The aggressive option distorts the waveform, can drop short "yes"/"no" answers, and carries a surcharge |
+| `vocab_specialization` | `general` | The only other value is `medical`. English agents only |
+| `boosted_keywords` | trade vocabulary, under 10 | Cap is 100. Supports `{{variable}}`, so you can inject caller-specific words per call |
+
+**Two locales of the same language cost nothing.** `en-US` plus `en-GB` stays on the single-language
+path. Crossing families, like `en-GB` plus `es-ES`, switches to the multilingual pipeline and loses
+accuracy on both.
+
+**Never pin a custom `endpointing_ms` unless you have measured it.** A build ran Deepgram at
+1000ms, which is a full second of dead air on every single turn. Use `accurate` and let Retell tune
+it. ASR provider latencies for reference: Deepgram ~300ms, Soniox ~490ms, Azure ~530ms.
+
+### Handbook presets - free accuracy, all off by default
+
+New agents ship with only the default personality and the AI disclosure enabled. Two of the rest
+are worth turning on for any agent taking names and addresses:
+
+- **`echo_verification`** - repeats back names and numbers, and spells out uncommon names.
+- **`nato_phonetic_alphabet`** - reads back as "B as in Bravo, seven, K as in Kilo".
+
+**Leave `smart_matching` off** whenever the name goes on a job sheet. It deliberately treats
+"Brandon" and "Brendon" as the same person.
+
+### Two things that are not what they sound like
+
+- **`pronunciation_dictionary` is a TTS feature, not an STT one.** It changes how the agent
+  *speaks* a word. It does nothing for what the recogniser *hears*. It is also unsupported on
+  `eleven_flash_v2_5`.
+- **DTMF cannot capture a UK postcode.** It is digits only. Useful for a house number or a
+  confirmation, never for anything alphanumeric.
+
 ---
 
 ## MODEL AND VOICE
 
 Two different things. The LLM decides *what* to say; the voice model turns it into audio.
 
-**LLM:** `gpt-5.2`. Never a mini or fast variant - their errors are reasoning errors, which are the
-ones clients notice. And a smaller model is not faster end to end: measured on real calls, `gpt-5.2`
-was **1,420ms** against a mini model's **1,709ms**, because a better model produces fewer repair
-loops.
+### Pick the LLM deliberately
 
-**`model_high_priority`: `false`.** That flag is Retell's **Fast Tier** and it **doubles the LLM
-cost** - $0.056/min becomes $0.112/min. Same model, no better answers, just less queuing. If
-latency is a problem, cut the prompt first.
+Retell's per-minute prices, checked September 2026. The four they tag **Recommended** are marked.
 
-**Voice model:** a real trade-off.
+| Model | Standard | Fast Tier |
+|---|---|---|
+| GPT 5.6 Terra **(rec)** | 0.064 | not offered |
+| Claude 5 Sonnet **(rec)** | 0.064 | not offered |
+| GPT 5.4 **(rec)** | 0.080 | 0.16 |
+| GPT 5.5 **(rec)** | 0.160 | 0.32 |
+| GPT 5.2 | 0.056 | 0.112 |
+| GPT 4.1 | 0.045 | 0.0675 |
+| Claude 4.5 Haiku | 0.025 | not offered |
+| Gemini 3.5 Flash | 0.048 | not offered |
+| GPT 6 Astra | 0.32 | 0.64 |
+
+**GPT 4.1 is still the platform default.** Retell says it is the most used model across 100M+
+calls a month, because it has no reasoning step, so nothing pauses before it speaks.
+
+**Claude is the one to reach for when the prompt is long and rule-heavy.** Every independent
+source says the same thing: its edge is holding fidelity to a detailed system prompt across a long
+conversation. That is exactly the failure mode of a receptionist prompt - ignoring rules,
+inventing lines, closing early. Two pence a minute more than GPT 4.1.
+
+**Never a reasoning model at full effort.** Reasoning adds 800ms to 2s before the first word, and
+the caller hears silence and assumes the line dropped. Retell runs the whole GPT-5 family at
+`minimal` effort for this reason. Their own measurement: GPT-5 minimal 1000ms against GPT-4.1
+720ms.
+
+**Never a nano tier on a customer-facing call**, and be wary of mini: function-calling reliability
+drops, and a repair loop costs more time than the model saved.
+
+### Fast Tier
+
+`model_high_priority: true` is Retell's **Fast Tier**. It does not change the model or the
+answers - it buys dedicated capacity, so about 25% better average response time and half the
+latency variance.
+
+**The multiplier is not constant.** The docs say 1.5x. The pricing page shows 1.5x on the GPT 4.1
+family and **2x on everything in the GPT-5 line**. Read the price table, not the doc. Several
+models offer no Fast Tier at all.
+
+If latency is the problem, cut the prompt and fix the transcriber settings before you pay for this.
+
+### Voice model
 
 | | `eleven_flash_v2_5` | `eleven_v3` |
 |---|---|---|
@@ -358,8 +430,98 @@ back; do not assume the POST worked.
 **Always send `general_tools` with `general_prompt`.** A partial PATCH carrying only the prompt
 **silently wipes the tools** and still returns 200.
 
+### Versions do not behave the way you expect
+
 Retell opens a new draft after each publish, so the version in the H1 must be the one it will
-publish **as**. If the draft is v26 and the title says v27, publish twice.
+publish **as**.
+
+**The number can jump by more than one.** A single edit-then-publish took an agent from draft v1
+to draft v3, with v1 *and* v2 both marked published. Never assume the new version is the old one
+plus one.
+
+**`GET /get-agent/<id>` with no version returns the DRAFT, not the live agent.** To find what is
+actually answering the phone, walk the versions and keep the highest with `is_published: true`:
+
+```python
+live = None
+for v in range(0, 40):
+    try:
+        a = get(f'get-agent/{AID}?version={v}')
+        if a['is_published']: live = (v, a)
+    except HTTPError: break
+```
+
+**`POST /publish-agent` returns an empty body.** Parsing it as JSON throws. Read the status code,
+then verify by reading the agent back.
+
+**Diff the local file against the live prompt** before you tell anyone it is done. One line:
+`live_prompt.strip() == local_file.strip()`. It catches a silent failed PATCH instantly.
+
+### Tooling
+
+Large prompts break shell heredocs. Write the prompt with the file tool, not `cat <<EOF`, or you
+will lose an hour to quoting.
+
+---
+
+## HOW TO ANALYSE A REPORTED FAULT
+
+Never change a prompt from the client's description of a call. Pull the call.
+
+```
+GET /v2/get-call/<call_id>
+```
+
+Read these four things, in this order, **before** forming any theory:
+
+1. **`agent_version`.** Which build actually answered. Pull that version's prompt back and confirm
+   your fix was even in it. Half of "you didn't fix it" is a call that ran on the old version.
+2. **`retell_llm_dynamic_variables`.** What the agent was actually holding. "It asked for my name
+   again" means nothing until you know whether `first_name` arrived. This is also where you see
+   the empty strings.
+3. **`transcript_object`** with word timings, not just `transcript`. Overlapping timestamps are
+   how you prove an interruption. A real one:
+   ```
+   138.71 -> 140.87   user   "Also, the team will reach me."
+   139.01 -> 140.85   agent  "Thanks, Jamie. The team will"
+   ```
+   The agent started 0.3s *after* the caller and talked straight through. That is a settings fault,
+   not a prompt fault.
+4. **`call_analysis.custom_analysis_data`.** What actually reached the CRM. An empty field here is
+   the bug, whatever the transcript sounded like.
+
+Also check `latency`. Retell's guidance: under 800ms end to end is the target, above 1,500ms and
+callers start hanging up. Split it - if `llm` p50 is fine and end-to-end is not, the time is going
+on turn detection, not the model.
+
+**Classify before you edit.** Every fault is one of four things, and only one of them is fixed by
+prompt text:
+
+| Symptom | Where the fault is |
+|---|---|
+| Wrong words in the transcript | ASR. Check `boosted_keywords`, `language`, `stt_mode` |
+| Right words, wrong behaviour | The prompt |
+| Talked over, cut off, hung up early | Agent settings, not the prompt |
+| Right call, empty CRM field | Analysis field description, or nothing was confirmed out loud |
+
+---
+
+## POST-CALL ANALYSIS FIELDS ARE PROMPTS TOO
+
+Each field's `description` is an instruction to a second model that only sees the transcript. Write
+them with the same care as the agent prompt.
+
+- **Say what counts as established.** An address that arrived in a variable and was read back and
+  agreed *is* established. If the description does not say so, the field comes back empty.
+- **Say what empty means and ban placeholders.** "Leave COMPLETELY EMPTY if not established - never
+  'unknown', 'n/a' or 'not mentioned'." Placeholders get written into the CRM and read as though
+  the customer said them.
+- **Name the real values.** If a decision turns on a CRM tag, put the exact tag string in the
+  description, spelled as the CRM spells it.
+- **Warn the user about overwrites.** An empty string from the analysis will overwrite a populated
+  CRM field. The prompt reduces how often that happens; it cannot prevent it. The durable fix is in
+  their automation - do not map an empty value over an existing one. Say this out loud rather than
+  letting them discover it.
 
 ---
 
@@ -504,7 +666,15 @@ number that answered the phone.
 **Size**
 - [ ] Under 8,000 tokens, counted not estimated
 
-**Then publish, and verify the publish.**
+**Live-call regressions** (each of these has shipped broken at least once)
+- [ ] Every branch ends by naming the next stage
+- [ ] No rule contradicts another. Where two could apply, one says it wins
+- [ ] Defaults are unconditional; exceptions are named after them, never the reverse
+- [ ] No delivery word (`pause`, `slowly`, `spell out`) inside a sentence the agent speaks
+- [ ] Nothing tells the model that empty variables are stripped, because they are not
+- [ ] Held values are confirmed out loud, and the analysis description says a read-back counts
+
+**Then publish, verify the publish, and diff the live prompt against your local file.**
 
 ---
 
@@ -519,3 +689,24 @@ number that answered the phone.
 - When a client reports a fault, **read the transcript before changing anything** - and check the
   variables and the ASR output, not just the agent's replies. Half of what looks like a prompt
   failure is a mishearing or a bad CRM record.
+
+### Before you push anything to a remote
+
+**Open `.gitignore` and read it.** On this build the file called `.gitignore` contained the
+client's feedback notes, not ignore rules, so nothing was ignored and the Retell API key in `.env`
+was one command away from being public.
+
+Before the first push:
+
+```bash
+grep -rlniE "key-[a-z0-9]{20,}|Bearer [A-Za-z0-9._-]{20,}|eyJ[A-Za-z0-9._-]{20,}" . --include='*.json' --include='*.js' --include='*.md'
+git ls-files --cached | grep -E '^\.env|^scratch/'     # must return nothing
+git ls-tree -r --name-only origin/main                  # verify after
+```
+
+Never commit `.env`, and never commit raw call dumps - they carry caller phone numbers, names and
+home addresses. Keep them in a gitignored scratch directory.
+
+Tell the user what you excluded and why, and flag anything real that did go up: a transfer number
+in a tools file is config, not a secret, but it is still the client's phone number, so say so and
+ask whether the repo is private.
