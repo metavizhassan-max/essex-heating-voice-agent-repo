@@ -54,7 +54,7 @@ Every prompt uses exactly these, in this order, with these names. No numbering, 
 | **ENVIRONMENT** | The situation the call arrives in. What it can and cannot see |
 | **TONE** | Turn length, one question per turn, reacting, fillers, energy, speech rules |
 | **VARIABLES** | The list, the presence principle, a table of what to do with each held fact |
-| **GOAL** | One parent objective, four or five children. Nothing else |
+| **GOAL** | The one outcome for the whole call, then the four or five things that reach it |
 | **CALL TYPE OBJECTIVES** | One self-contained block per scenario. **The heart of the prompt** |
 | **TOOLS** | What it has, when to use each, and a hard list of what it does NOT have |
 | **CALL FLOW** | The call in the order it actually happens, start to finish |
@@ -103,20 +103,22 @@ disclosure.
 Under CALL TYPE OBJECTIVES, each kind of call gets its own block holding **everything** for it.
 
 ```
-### A) New boiler or installation
+### A) A new boiler or an installation
 
 *One italic line: the words and signals that mean this is the branch.*
 
-**Parent:** the outcome, in one sentence.
+One sentence naming the outcome this branch reaches.
 
-**Children:**
-1. ...
+The questions in the order they are asked, written as sentences.
 
-**Rules for this branch:**
-- ...
+- The limits and prohibitions that apply only here.
 
-**Never:** prohibitions that apply only here.
+**Then whatever happens next, named explicitly.**
 ```
+
+**No labels.** Never write `Parent:`, `Children:`, `Child objectives` or `Rules for this branch`
+into a prompt. That scaffolding is for you. A client read it back to me as clutter and had it
+removed, and they were right: the agent does not need to be told which noun a paragraph is.
 
 A real prompt had new-boiler logic split across five sections - routing, questions, address, name,
 close. The model had to reassemble the call from five places and never did it the same way twice.
@@ -125,14 +127,21 @@ what is this"*.
 
 If two branches need the same rule it goes in GUARDRAILS or TONE **once**, never copied.
 
-### 3. Parent and child, written out
+### 3. Outcome first, then the steps, then where the call goes
 
-Never make the model infer the structure. GOAL carries one parent objective and its children.
-Every branch carries its own `**Parent:**` and `**Children:**`.
+Never make the model infer the structure - but write the shape, not the vocabulary.
 
-A parent is an **outcome** - the state of the world when it is done. A child is a thing to
-establish or do. If you cannot write the parent as one sentence describing a finished state, the
-branch is not thought through.
+GOAL opens with the one outcome for the whole call, then the few things that reach it. Every
+branch opens with one sentence naming its own outcome, then its questions in the order they are
+asked, then its limits.
+
+An outcome is the state of the world when the branch is done. A step is a thing to establish or
+do. If you cannot write the outcome as one sentence describing a finished state, the branch is not
+thought through.
+
+**Every branch must end by naming the next stage.** The nesting used to be carried by the labels
+and the numbered lists. Strip those out and the handoff goes with them, silently, and the agent
+starts ending calls early. See *Deleting structure deletes steps*.
 
 ### 4. Under 8,000 tokens
 
