@@ -6,9 +6,8 @@ real phone calls for UK trade businesses.
 The prompt is the whole product. There is nowhere else to put logic, so the agent is exactly as
 good as the document you write and not one bit better.
 
-Full background - workflows, GHL, post-call analysis, the build phases - is in
-[docs/SKILL-full-reference.md](docs/SKILL-full-reference.md). **This file is the prompt-writing
-method, and it is the one you must follow.**
+**This file is the method. Follow it.** Everything you need to write, fix and ship a prompt is
+here - you should not need another document.
 
 ---
 
@@ -64,9 +63,6 @@ Every prompt uses exactly these, in this order, with these names. No numbering, 
 Close with one short line in the agent's own voice telling it what it is about to do.
 
 H1: `# <Client> - <Agent name> - <Inbound Receptionist | Outbound Setter> v27`
-
-Read [prompts/example_voiecagent](prompts/example_voiecagent) before writing a new one. It is a
-working prompt that gets all of this right.
 
 ---
 
